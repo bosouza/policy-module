@@ -19,7 +19,7 @@ VALUES ('3');
 DELETE FROM system_policy
 WHERE ID = '3';
 
-UPDATE FROM system_policy
+UPDATE system_policy
 SET ID = '3'
 WHERE ID = '2';
 
@@ -31,6 +31,6 @@ VALUES ('3','R2','Test 2');
 DELETE FROM system_policy_resource
 WHERE policyID = '3';
 
-UPDATE FROM system_policy_resource
+UPDATE system_policy_resource
 SET policyID = '2'
 WHERE policyID = '1';
