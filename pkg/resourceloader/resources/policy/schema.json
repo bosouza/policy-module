@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "policy.schema.json",
+  "title": "Policy",
+  "description": "Schema defining policies for policy management",
+  "type": "object",
+  "properties": {
+    "activity": {
+      "title": "Activity",
+      "type": "string",
+      "enum": [
+        "read",
+        "write",
+        "assign"
+      ]
+    }
+  },
+  "required": [
+    "activity"
+  ]
+}
