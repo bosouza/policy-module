@@ -73,3 +73,15 @@ func (s *Storage) CreatePolicy(policy Policy) (err error) {
 
 	return nil
 }
+
+func (s *Storage) AssignPolicyToUser(policyId, userId string) (err error) {
+	_, err = s.db.Exec(`
+		INSERT INTO user_policy(policyID,userID)
+		VALUES (?, ?)`,
+		policyId, userId)
+	if err != nil {
+		return fmt.Errorf("failed to insert policy assignment: %s", err)
+	}
+
+	return nil
+}

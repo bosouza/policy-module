@@ -45,6 +45,7 @@ type policyServer struct {
 
 func (s *policyServer) registerRoutes(router *mux.Router) {
 	router.Path("/policy").Methods(http.MethodPost).HandlerFunc(s.postPolicyHandler)
+	router.Path("/assign/{userId}/{policyId}").Methods(http.MethodPut).HandlerFunc(s.assignPolicy)
 	return
 }
 
@@ -73,6 +74,23 @@ func (s *policyServer) postPolicyHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	log.Printf("successfully created new policy %q", policy.Id)
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func (s *policyServer) assignPolicy(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	policyId := vars["policyId"]
+	userId := vars["userId"]
+
+	err := s.storage.AssignPolicyToUser(policyId, userId)
+	if err != nil {
+		log.Printf("failed to assign policy %q to user %q: %s", policyId, userId, err)
+		http.Error(w, "failed assignment", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("successfully assigned policy %q to user %q", policyId, userId)
 	w.WriteHeader(http.StatusOK)
 	return
 }

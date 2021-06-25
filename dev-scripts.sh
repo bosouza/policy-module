@@ -15,6 +15,7 @@ reset-db () {
 
 deploy-db-resources () {
   mysql -h localhost -P 3306 --protocol=TCP -u root -pmypass < ./db/db.sql
+  mysql -h localhost -P 3306 --protocol=TCP -u root -pmypass < ./db/test-data.sql
 }
 
 app-run () {
@@ -32,4 +33,8 @@ create-policy () {
         }
       ]
     }'
+}
+
+assign-policy () {
+  curl http://localhost:8180/assign/test-user-1/createPolicies -X PUT -i
 }
