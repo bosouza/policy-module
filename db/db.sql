@@ -13,6 +13,7 @@ CREATE TABLE policy (
 CREATE TABLE policy_resource (
     policyID VARCHAR(30),
     resourceID VARCHAR(30),
+    content JSON,
     FOREIGN KEY (policyID) REFERENCES policy(ID),
     FOREIGN KEY (resourceID) REFERENCES resource(ID)
 );

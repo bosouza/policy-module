@@ -20,3 +20,16 @@ deploy-db-resources () {
 app-run () {
   go run ./cmd/policyserver/main.go
 }
+
+create-policy () {
+  curl http://localhost:8180/policy -X POST -i \
+    -d '{
+      "id": "createPolicies",
+      "policyResources" : [
+        {
+          "resourceId" : "policy",
+          "content":"{\"activity\":\"write\"}"
+        }
+      ]
+    }'
+}
