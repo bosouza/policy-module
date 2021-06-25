@@ -11,7 +11,7 @@ import (
 //go:embed resources
 var embeddedFS embed.FS
 
-func ImportResourcesIntoDb(storage policydb.Storage) error {
+func ImportResourcesIntoDb(storage *policydb.Storage) error {
 	resources, err := embeddedFS.ReadDir("resources")
 	if err != nil {
 		return fmt.Errorf(`failed to read "resources" dir from embbededFS: %s`, err)
