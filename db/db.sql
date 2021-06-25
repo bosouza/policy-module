@@ -34,15 +34,15 @@ CREATE OR REPLACE
 VIEW USER_RESOURCE(user_id, user_resource, resource_content)
 AS 
 SELECT
-	usr.id,
-	rsc.id,
+	usr.ID,
+	rsc.ID,
 	plc_rsc.content
-FROM USER usr
-INNER JOIN USER_POLICY usr_plc
+FROM user usr
+INNER JOIN user_policy usr_plc
 	ON usr_plc.userID = usr.id
-INNER JOIN POLICY plc
+INNER JOIN policy plc
 	ON plc.id = usr_plc.policyID
-INNER JOIN POLICY_RESOURCE plc_rsc
+INNER JOIN policy_resource plc_rsc
 	ON plc_rsc.policyID = plc.id
-INNER JOIN RESOURCE rsc
+INNER JOIN resource rsc
 	ON rsc.id = plc_rsc.resourceID;
