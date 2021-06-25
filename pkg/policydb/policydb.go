@@ -10,8 +10,8 @@ type Storage struct {
 	db *sql.DB
 }
 
-func NewStorage(db *sql.DB) Storage {
-	return Storage{db: db}
+func NewStorage(db *sql.DB) *Storage {
+	return &Storage{db: db}
 }
 
 func (s *Storage) ResourceExists(resourceId string) (exists bool, err error) {
@@ -84,4 +84,43 @@ func (s *Storage) AssignPolicyToUser(policyId, userId string) (err error) {
 	}
 
 	return nil
+}
+
+func (s *Storage) GetAllRego() (modules []string, err error) {
+	rows, err := s.db.Query(`SELECT rego FROM resource`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all rego from db: %s", err)
+	}
+	defer rows.Close()
+
+	var regoModules []string
+	for rows.Next() {
+		var newModule string
+		err := rows.Scan(&newModule)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row for rego: %s", err)
+		}
+		regoModules = append(regoModules, newModule)
+	}
+	return regoModules, nil
+}
+
+func (s *Storage) GetRegoData() (*RegoData, error) {
+	rows, err := s.db.Query(`
+		SELECT userID, resourceID, content 
+		FROM user_resource`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get resources view: %s", err)
+	}
+
+	userResources := make(map[string][]PolicyResource)
+	for rows.Next() {
+		var userId, resourceId, content string
+		err := rows.Scan(&userId, &resourceId, &content)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan view row: %s", err)
+		}
+		userResources[userId] = append(userResources[userId], PolicyResource{ResourceId: resourceId, Content: content})
+	}
+	return &RegoData{UserResources: userResources}, nil
 }

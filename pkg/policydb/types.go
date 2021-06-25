@@ -15,3 +15,7 @@ type PolicyResource struct {
 	ResourceId string `json:"resourceId"`
 	Content    string `json:"content"`
 }
+
+type RegoData struct {
+	UserResources map[string][]PolicyResource `json:"userResources"`
+}

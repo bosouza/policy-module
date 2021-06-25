@@ -38,3 +38,14 @@ create-policy () {
 assign-policy () {
   curl http://localhost:8180/assign/test-user-1/createPolicies -X PUT -i
 }
+
+evaluate-policy () {
+  curl http://localhost:8180/evaluate -X POST -i \
+    -d '{
+      "policyCheckId": "allowPolicy",
+      "input":{
+        "user":"test-user-1",
+        "activity":"write"
+      }
+    }'
+}

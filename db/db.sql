@@ -31,7 +31,7 @@ CREATE TABLE user_policy (
 );
 
 CREATE OR REPLACE
-VIEW USER_RESOURCE(user_id, user_resource, resource_content)
+VIEW user_resource(userID, resourceID, content)
 AS 
 SELECT
 	usr.ID,

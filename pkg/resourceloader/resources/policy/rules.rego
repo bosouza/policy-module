@@ -3,8 +3,10 @@ package policymodule
 import data.userResources
 
 allowPolicy {
-    # for each o the user's resources
-	resource := userResources[input.user][_]
+    # get the user's resources
+	resources := userResources[input.user]
+
+	resource = resources[_]
 
 	# for the resources of type "policy"
 	resource.id == "policy"

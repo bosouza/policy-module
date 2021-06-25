@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/souza-bruno/policy-module/pkg/evaluator"
 	"github.com/souza-bruno/policy-module/pkg/policydb"
 	"github.com/souza-bruno/policy-module/pkg/resourceloader"
 
@@ -29,7 +30,12 @@ func main() {
 		log.Fatalf("failed to import resoruces into db: %s", err)
 	}
 
-	pServer := &policyServer{storage: &storage}
+	eval, err := evaluator.NewPolicyEvaluator(storage)
+	if err != nil {
+		log.Fatalf("failed to create evaluator: %s", err)
+	}
+
+	pServer := &policyServer{storage: storage, eval: eval}
 
 	r := mux.NewRouter()
 	pServer.registerRoutes(r)
@@ -41,11 +47,13 @@ func main() {
 
 type policyServer struct {
 	storage *policydb.Storage
+	eval    *evaluator.PolicyEvaluator
 }
 
 func (s *policyServer) registerRoutes(router *mux.Router) {
 	router.Path("/policy").Methods(http.MethodPost).HandlerFunc(s.postPolicyHandler)
 	router.Path("/assign/{userId}/{policyId}").Methods(http.MethodPut).HandlerFunc(s.assignPolicy)
+	router.Path("/evaluate").Methods(http.MethodPost).HandlerFunc(s.evaluate)
 	return
 }
 
@@ -90,7 +98,51 @@ func (s *policyServer) assignPolicy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = s.eval.RefreshData()
+	if err != nil {
+		log.Fatalf("failed to refresh data: %s", err)
+	}
+
 	log.Printf("successfully assigned policy %q to user %q", policyId, userId)
 	w.WriteHeader(http.StatusOK)
 	return
+}
+
+func (s *policyServer) evaluate(w http.ResponseWriter, r *http.Request) {
+	evaluationJson, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("failed to read request body: %s", err)
+		http.Error(w, "failed to read request body", http.StatusInternalServerError)
+		return
+	}
+
+	var input EvaluateInput
+	err = json.Unmarshal(evaluationJson, &input)
+	if err != nil {
+		log.Printf("failed to unmarshall evaluate post body: %s", err)
+		http.Error(w, "failed to unmarshall evaluate post body", http.StatusBadRequest)
+		return
+	}
+
+	result, err := s.eval.Evaluate(r.Context(), input.PolicyCheckId, input.Input)
+	if err != nil {
+		log.Printf("failed to evaluate: %s", err)
+		http.Error(w, "failed to evaluate", http.StatusBadRequest)
+		return
+	}
+
+	mResult, err := json.Marshal(result)
+	if err != nil {
+		log.Printf("failed to marshal evaluation result: %s", err)
+		http.Error(w, "failed to marshal evaluation result", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("successfully evaluated policycheck %q", input.PolicyCheckId)
+	w.Write(mResult)
+}
+
+type EvaluateInput struct {
+	PolicyCheckId string      `json:"policyCheckId"`
+	Input         interface{} `json:"input"`
 }
