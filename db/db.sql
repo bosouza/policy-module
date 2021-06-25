@@ -59,3 +59,41 @@ CREATE TABLE system_policy_resource (
     FOREIGN KEY (policyID) REFERENCES system_policy(ID),
     FOREIGN KEY (resourceID) REFERENCES resource(ID)
 );
+
+CREATE TRIGGER insert_policy
+AFTER INSERT ON system_policy
+FOR EACH ROW 
+INSERT INTO policy (ID, systemPolicy)
+VALUES (new.ID, 1);
+
+CREATE TRIGGER delete_policy
+AFTER DELETE ON system_policy
+FOR EACH ROW 
+DELETE FROM policy
+WHERE policy.ID = old.ID;
+
+CREATE TRIGGER update_policy
+AFTER UPDATE ON system_policy
+FOR EACH ROW 
+UPDATE policy
+SET policy.ID = new.ID
+WHERE policy.ID = old.ID;
+
+CREATE TRIGGER insert_policy_resource
+AFTER INSERT ON system_policy_resource
+FOR EACH ROW 
+INSERT INTO policy_resource (policyID, resourceID, content)
+VALUES (new.policyID, new.resourceID, new.content);
+
+CREATE TRIGGER delete_policy_resource
+AFTER DELETE ON system_policy_resource
+FOR EACH ROW 
+DELETE FROM policy_resource
+WHERE policy_resource.policyID = old.policyID;
+
+CREATE TRIGGER update_policy_resource
+AFTER UPDATE ON system_policy_resource
+FOR EACH ROW 
+UPDATE policy_resource
+SET policy_resource.policyID = new.policyID
+WHERE policy_resource.policyID = old.policyID;
