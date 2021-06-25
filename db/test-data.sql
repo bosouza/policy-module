@@ -3,6 +3,11 @@ USE policy;
 INSERT INTO user(ID)
 VALUES ('test-user-1'),('test-user-2'),('test-user-3');
 
+INSERT INTO resource(ID)
+VALUES ('R1');
+
+INSERT INTO resource(ID)
+VALUES ('R2');
 
 INSERT INTO system_policy(ID)
 VALUES ('1');
