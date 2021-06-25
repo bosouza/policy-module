@@ -1,16 +1,17 @@
 package resourceloader
 
 import (
-	"database/sql"
 	"embed"
 	"fmt"
 	"log"
+
+	"github.com/souza-bruno/policy-module/pkg/policydb"
 )
 
 //go:embed resources
 var embeddedFS embed.FS
 
-func ImportResourcesIntoDb(db *sql.DB) error {
+func ImportResourcesIntoDb(storage policydb.Storage) error {
 	resources, err := embeddedFS.ReadDir("resources")
 	if err != nil {
 		return fmt.Errorf(`failed to read "resources" dir from embbededFS: %s`, err)
@@ -19,43 +20,39 @@ func ImportResourcesIntoDb(db *sql.DB) error {
 		if !resourceDir.IsDir() {
 			log.Printf("found file %s inside resources dir, skipping it", resourceDir.Name())
 		}
-		resourceId := resourceDir.Name()
+		resource := policydb.Resource{Id: resourceDir.Name()}
 
-		regoFile := fmt.Sprintf("resources/%s/rules.rego", resourceId)
-		regoContent, err := embeddedFS.ReadFile(regoFile)
+		regoFile := fmt.Sprintf("resources/%s/rules.rego", resource.Id)
+		resource.Rego, err = embeddedFS.ReadFile(regoFile)
 		if err != nil {
 			return fmt.Errorf("failed to read file %s: %s", regoFile, err)
 		}
 		log.Printf("successfuly read file %s", regoFile)
 
-		schemaFile := fmt.Sprintf("resources/%s/schema.json", resourceId)
-		schemaContent, err := embeddedFS.ReadFile(schemaFile)
+		schemaFile := fmt.Sprintf("resources/%s/schema.json", resource.Id)
+		resource.Schema, err = embeddedFS.ReadFile(schemaFile)
 		if err != nil {
 			return fmt.Errorf("failed to read file %s: %s", schemaFile, err)
 		}
 		log.Printf("successfully read file %s", schemaFile)
 
-		err = db.QueryRow(`SELECT ID FROM resource WHERE ID = ?`, resourceId).Scan(&resourceId)
-		if err == nil {
+		exists, err := storage.ResourceExists(resource.Id)
+		if err != nil {
+			return err
+		}
+		if exists {
 			// TODO: should actually handle case when resources are updated
-			log.Printf("resource %q already exists, skipping creation", resourceId)
+			log.Printf("resource %q already exists, skipping creation", resource.Id)
 			continue
 		}
-		if err != sql.ErrNoRows {
-			return fmt.Errorf("unexpected error when querying for existence of resoruce %q: %s", resourceId, err)
-		}
 
-		insertQry := `
-			INSERT INTO resource(ID,rego,jsonSchema)
-			VALUES (?, ?, ?)`
-		_, err = db.Exec(insertQry, resourceId, regoContent, schemaContent)
+		err = storage.CreateResource(resource)
 		if err != nil {
-			log.Printf("regoContent: %s", regoContent)
-			log.Printf("schemaContent: %s", schemaContent)
-			return fmt.Errorf("failed to insert resource %q into db: %s", resourceId, err)
+			log.Printf("regoContent: %s", resource.Rego)
+			log.Printf("schemaContent: %s", resource.Schema)
+			return err
 		}
-		log.Printf("successful creation of resource %q", resourceId)
-
+		log.Printf("successful creation of resource %q", resource.Id)
 	}
 	return nil
 }

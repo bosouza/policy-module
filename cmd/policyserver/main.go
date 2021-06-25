@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/souza-bruno/policy-module/pkg/policydb"
 	"github.com/souza-bruno/policy-module/pkg/resourceloader"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -19,7 +20,9 @@ func main() {
 	}
 	defer db.Close()
 
-	err = resourceloader.ImportResourcesIntoDb(db)
+	storage := policydb.NewStorage(db)
+
+	err = resourceloader.ImportResourcesIntoDb(storage)
 	if err != nil {
 		log.Fatalf("failed to import resoruces into db: %s", err)
 	}
@@ -43,14 +46,14 @@ func testHandler(writer http.ResponseWriter, request *http.Request) {
 	writer.Write([]byte("ok"))
 }
 
-//type Policy struct {
-//	Id      string `json:id`
-//	Content string `json:content`
-//}
-//
-//type policyServer struct {
-//}
-//
-//func (s *policyServer) postPolicyHandler(w http.ResponseWriter, r *http.Request) {
-//
-//}
+type Policy struct {
+	Id      string `json:id`
+	Content string `json:content`
+}
+
+type policyServer struct {
+}
+
+func (s *policyServer) postPolicyHandler(w http.ResponseWriter, r *http.Request) {
+
+}
