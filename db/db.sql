@@ -7,7 +7,8 @@ CREATE TABLE resource (
 );
 
 CREATE TABLE policy (
-    ID VARCHAR(50) NOT NULL PRIMARY KEY
+    ID VARCHAR(50) NOT NULL PRIMARY KEY,
+    systemPolicy BOOLEAN
 );
 
 CREATE TABLE policy_resource (
@@ -46,3 +47,15 @@ INNER JOIN policy_resource plc_rsc
 	ON plc_rsc.policyID = plc.id
 INNER JOIN resource rsc
 	ON rsc.id = plc_rsc.resourceID;
+
+CREATE TABLE system_policy (
+    ID VARCHAR(50) NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE system_policy_resource (
+    policyID VARCHAR(50),
+    resourceID VARCHAR(50),
+    content JSON,
+    FOREIGN KEY (policyID) REFERENCES system_policy(ID),
+    FOREIGN KEY (resourceID) REFERENCES resource(ID)
+);
