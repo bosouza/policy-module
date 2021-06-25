@@ -2,6 +2,7 @@ package policydb
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 )
@@ -113,14 +114,19 @@ func (s *Storage) GetRegoData() (*RegoData, error) {
 		return nil, fmt.Errorf("failed to get resources view: %s", err)
 	}
 
-	userResources := make(map[string][]PolicyResource)
+	userResources := make(map[string][]RegoResource)
 	for rows.Next() {
 		var userId, resourceId, content string
 		err := rows.Scan(&userId, &resourceId, &content)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan view row: %s", err)
 		}
-		userResources[userId] = append(userResources[userId], PolicyResource{ResourceId: resourceId, Content: content})
+		contentJson, err := json.Marshal(content)
+		if err != nil {
+			return nil, err
+		}
+
+		userResources[userId] = append(userResources[userId], RegoResource{Id: resourceId, Content: contentJson})
 	}
 	return &RegoData{UserResources: userResources}, nil
 }

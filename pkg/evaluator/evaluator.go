@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -76,6 +77,9 @@ func (e *PolicyEvaluator) RefreshData() error {
 	if err != nil {
 		return fmt.Errorf("failed to get rego data : %s", err)
 	}
+
+	log.Printf("rego data for evaluation: %v", regoData)
+
 	regoDataJson, err := json.Marshal(regoData)
 	if err != nil {
 		return fmt.Errorf("failed to marshal rego data: %s", err)
